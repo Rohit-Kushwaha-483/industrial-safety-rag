@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Industrial Safety RAG Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🦺 Industrial Safety RAG Assistant</h1>
+        <form id="qa-form">
+            <input type="text" id="question" placeholder="Ask a question..." required />
+            <button type="submit">Ask</button>
+        </form>
+        <div id="loading" class="hidden">🔄 Thinking...</div>
+        <div id="answer-box" class="hidden">
+            <h3>Answer:</h3>
+            <p id="answer"></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('qa-form');
+        const questionInput = document.getElementById('question');
+        const answerBox = document.getElementById('answer-box');
+        const answerText = document.getElementById('answer');
+        const loading = document.getElementById('loading');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            answerBox.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+                if (data.answer) {
+                    answerText.textContent = data.answer;
+                    answerBox.classList.remove('hidden');
+                } else {
+                    answerText.textContent = data.error || 'Something went wrong.';
+                    answerBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                answerText.textContent = 'Server error.';
+                answerBox.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
